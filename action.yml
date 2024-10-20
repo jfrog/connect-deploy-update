@@ -1,0 +1,44 @@
+name: 'Deploy Update'
+description: 'Github Action to deploy an update to IoT devices using JFrog Connect'
+inputs:
+  project_key:
+    description: 'The project key (required)'
+    required: true
+  groups:
+    description: 'The device group names in JSON format (optional)'
+    required: false
+    default: '[]'
+  filters:
+    description: 'The filters in JSON format (optional)'
+    required: false
+    default: '[]'
+  flow_uuid:
+    description: 'The Flow UUID (required)'
+    required: true
+  app_name:
+    description: 'The Application Name (optional)'
+    required: false
+    default: ''
+  app_version:
+    description: 'The Application Version (optional)'
+    required: false
+    default: ''
+  comment:
+    description: 'The deployment comment (optional)'
+    required: false
+    default: 'Default comment'
+
+runs:
+  using: 'node20'
+  main: 'index.js'
+  steps:
+    - name: Run Deployment
+      run: |
+        node index.js \
+        '${{ inputs.project_key }}' \
+        '${{ inputs.groups }}' \
+        '${{ inputs.filters }}' \
+        '${{ inputs.flow_uuid }}' \
+        '${{ inputs.app_name }}' \
+        '${{ inputs.app_version }}' \
+        '${{ inputs.comment }}'
