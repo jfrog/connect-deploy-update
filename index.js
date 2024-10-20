@@ -1,11 +1,22 @@
-const request = require('request');
+const axios = require('axios');
+const core = require('@actions/core');
 
-function deploy(project_key, groups, filters, flow_uuid, app_name, app_version, comment) {
+// Function to make the API request
+async function makeApiRequest(options) {
+    try {
+        const response = await axios(options);
+        return response.data; // Return the response data
+    } catch (error) {
+        throw new Error(error.response ? error.response.data : error.message);
+    }
+}
+
+async function deploy(project_key, groups, filters, flow_uuid, app_name, app_version, comment, parameters_mapping) {
     const requestBody = {
         device_filter: {},
         deployment_configuration: {
             flow_uuid: flow_uuid,
-            comment: comment || "Default comment",  // Use provided comment or fallback to default
+            comment: comment || "Default comment", // Use provided comment or fallback to default
             app: {}
         }
     };
@@ -35,6 +46,11 @@ function deploy(project_key, groups, filters, flow_uuid, app_name, app_version, 
         requestBody.deployment_configuration.app.version = app_version;
     }
 
+    // Add parameters mapping if provided
+    if (parameters_mapping && Object.keys(parameters_mapping).length > 0) {
+        requestBody.deployment_configuration.parameters_mapping = parameters_mapping;
+    }
+
     // Remove empty properties (e.g., app if no name/version is provided)
     if (!Object.keys(requestBody.deployment_configuration.app).length) {
         delete requestBody.deployment_configuration.app;
@@ -49,30 +65,33 @@ function deploy(project_key, groups, filters, flow_uuid, app_name, app_version, 
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(requestBody)
+        data: requestBody // Use `data` for the request body in axios
     };
 
-    request(options, function (error, response) {
-        if (error) {
-            throw new Error(error);
-        }
-        console.log(response.body);
-    });
+    try {
+        const responseData = await makeApiRequest(options);
+        console.log(responseData);
+        core.setOutput("response", responseData); // Set output for the response if needed
+    } catch (error) {
+        core.setFailed(`Request failed: ${error.message}`);
+    }
 }
 
-// Use the function with provided arguments from environment variables or GitHub actions inputs
-const project_key = process.argv[2];
-const groups = process.argv[3] ? JSON.parse(process.argv[3]) : [];  // Optional, defaults to empty array
-const filters = process.argv[4] ? JSON.parse(process.argv[4]) : []; // Optional, defaults to empty array
-const flow_uuid = process.argv[5]; // Required
-const app_name = process.argv[6] || null;  // Optional, defaults to null
-const app_version = process.argv[7] || null;  // Optional, defaults to null
-const comment = process.argv[8] || null;  // Optional, defaults to null
+// Read inputs using @actions/core
+(async () => {
+    try {
+        const project_key = core.getInput('project_key', { required: true });
+        const groups = JSON.parse(core.getInput('groups') || '[]'); // Optional, defaults to empty array
+        const filters = JSON.parse(core.getInput('filters') || '[]'); // Optional, defaults to empty array
+        const flow_uuid = core.getInput('flow_uuid', { required: true }); // Required
+        const app_name = core.getInput('app_name') || null; // Optional, defaults to null
+        const app_version = core.getInput('app_version') || null; // Optional, defaults to null
+        const comment = core.getInput('comment') || null; // Optional, defaults to null
+        const parameters_mapping = JSON.parse(core.getInput('parameters_mapping') || '{}'); // Optional, defaults to empty object
 
-if (!project_key || !flow_uuid) {
-    console.error("Error: 'project_key' and 'flow_uuid' are mandatory.");
-    process.exit(1);
-}
-
-deploy(project_key, groups, filters, flow_uuid, app_name, app_version, comment);
-
+        // Await the deployment call
+        await deploy(project_key, groups, filters, flow_uuid, app_name, app_version, comment, parameters_mapping);
+    } catch (error) {
+        core.setFailed(error.message);
+    }
+})();
