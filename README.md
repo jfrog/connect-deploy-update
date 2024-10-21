@@ -1,22 +1,26 @@
-
 # Deploy Device Update Action
 
-This GitHub Action allows you to deploy an update flow configured in JFrog Connect’s web UI to specific devices or groups of devices within your fleet. You can specify device filters, update configurations, and provide deployment comments.
+This GitHub Action allows you to deploy an update flow configured in JFrog Connect’s web UI to specific devices or
+groups of devices within your fleet. You can specify device filters, update configurations, and provide deployment
+comments.
 
 ## Usage
 
 ### Example Invocation
 
 #### Minimal
+
 ```yaml
       - uses: jfrog/connect-deploy-update@v1
         with:
           project_key: production
           groups: '["all"]'
           flow_uuid: d-feaf-d9aa
+          token: ${{ secrets.CONNECT_API_TOKEN }}
 ```
 
 #### Full
+
 ```yaml
       - name: Deploy Update
         uses: jfrog/connect-deploy-update@v1
@@ -45,18 +49,23 @@ This GitHub Action allows you to deploy an update flow configured in JFrog Conne
               "update_param_name1": "value",
               "update_param_name2": "value"
             }
+          token: ${{ secrets.CONNECT_API_TOKEN }}
 ```
 
 ### Inputs
 
 * project_key (required): The project key where the deployment will be executed.
 * groups (optional): The device group names in JSON format to filter by group. Example: ["Production", "QA"].
-* filters (optional): The filters in JSON format to define device-specific criteria. Each filter includes type, operand, and value. See device_filter below for details.
-* flow_uuid (required): The update flow UUID that specifies which flow to use. You can obtain the UUID from the “Update Flows” tab in the JFrog Connect web UI.
+* filters (optional): The filters in JSON format to define device-specific criteria. Each filter includes type, operand,
+  and value. See device_filter below for details.
+* flow_uuid (required): The update flow UUID that specifies which flow to use. You can obtain the UUID from the “Update
+  Flows” tab in the JFrog Connect web UI.
 * app_name (optional): The name of the app to be deployed (must exist in the Connect web UI).
 * app_version (optional): The version of the app to deploy.
 * comment (optional): A brief comment to describe the purpose or details of the deployment. Default is Default comment.
-
+* parameters_mapping (optional): The mapping of parameters for the update configuration in JSON format. Example: {"
+  update_param_name1": "value", "update_param_name2": "value"}.
+* token (required): The authorization token for authentication.
 
 ### API Request Structure
 
@@ -72,11 +81,13 @@ The device_filter object defines which devices will be acted on based on the fol
 
 #### filters
 
-The filters array defines the criteria for the devices to be included in the deployment. You can use multiple filters with an AND relationship. Each filter has a type, operand, and value:
+The filters array defines the criteria for the devices to be included in the deployment. You can use multiple filters
+with an AND relationship. Each filter has a type, operand, and value:
 
 * Type: Array of objects
 * Description: Criteria for filtering devices.
 * Example:
+
 ```json
 [
   {
@@ -92,56 +103,76 @@ The filters array defines the criteria for the devices to be included in the dep
 ]
 ```
 
-
 #### Filter Types
 
-* **specific_device**: Filters by the specific device’s UUID. The UUID can be obtained from the Devices page in the Connect web UI.
-* Operands: is, is_not
-* Value: Device UUID string.
-
+* **specific_device**: Filters by the specific device’s UUID. The UUID can be obtained from the Devices page in the
+  Connect web UI.
+  * Operands: is, is_not
+  * Value: Device UUID string.
 
 * **tag**: Filters by device tag.
-* Operands: is, is_not
-* Value: Name of the tag.
+  * Operands: is, is_not
+  * Value: Name of the tag.
 
- 
+
 * **app**: Filters by the app assigned to the device.
-* Operands: is, is_not
-* Value: App name.
+  * Operands: is, is_not
+  * Value: App name.
+  * Optionally adding **app_version** to the filter will filter by the app version.
+    * Operands: is, is_not
+    * Value: App version.
 
 
 * **device_state**: Filters by the current state of the device.
-* Operand: is
-* Possible Values: online, offline
+  * Operand: is
+  * Possible Values: online, offline
 
 
 * **deployment**: Filters by the deployment status of the device.
-* Operand: is
-* Possible Values: pending, in_progress, success, failed, aborted, any
-* Additional Property: Requires the deployment_id from the Deployments tab of the Updates page in the Connect web UI.
+  * Operand: is
+  * Possible Values: pending, in_progress, success, failed, aborted, any
+  * Additional Property: Requires the deployment_id from the Deployments tab of the Updates page in the Connect web UI.
 
 #### deployment_configuration
 
 The deployment_configuration object specifies the parameters for the deployment:
 
-* flow_uuid: (Required) Specifies which update flow to use. You can obtain the UUID from the “Update Flows” tab in the Connect web UI.
+* flow_uuid: (Required) Specifies which update flow to use. You can obtain the UUID from the “Update Flows” tab in the
+  Connect web UI.
 * comment: (Optional) You can add a brief comment to describe the purpose or importance of the deployment.
-* app: (Optional) Defines the app to deploy. This includes the name of the app and its version (e.g., "name": "default_app", "version": "v1.1").
-* parameters_mapping: (Optional) Specifies the update parameters configured in the update flow. Example: {"update_param_name1": "value", "update_param_name2": "value"}.
+* app: (Optional) Defines the app to deploy. This includes the name of the app and its version (e.g., "name": "
+  default_app", "version": "v1.1").
+* parameters_mapping: (Optional) Specifies the update parameters configured in the update flow. Example: {"
+  update_param_name1": "value", "update_param_name2": "value"}.
 
 #### Notes
 
 * This action is designed to trigger device updates via the JFrog Connect API.
-* Ensure that you have the correct flow_uuid, project_key, and any necessary filters or app configurations before running this action.
+* Ensure that you have the correct flow_uuid, project_key, and any necessary filters or app configurations before
+  running this action.
 * Filters can be left empty, but their structure must be defined.
 
 # Contributing
 
 ## prerequisites
+
 - Node.js v20
 
 ## Setup
+
 - Clone the repository
 - Run `npm install`
+
+## Testing
+
+- Run `npm test`
+
+## Packaging
+
 - Make code changes
 - Pack using `npm run pack`
+- Commit the changes (including the packed file `bin/run.js`)
+
+## Release
+
+- Tag the commit with the version number
