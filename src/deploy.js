@@ -2,12 +2,12 @@
 const axios = require('axios');
 const core = require('@actions/core');
 
-async function deploy(project_key, groups, filters, flow_uuid, app_name, app_version, comment, parameters_mapping) {
+async function deploy(project_key, groups, filters, flow_uuid, app_name, app_version, comment, parameters_mapping, token) {
     const requestBody = {
         device_filter: {},
         deployment_configuration: {
             flow_uuid: flow_uuid,
-            comment: comment || "Default comment", // Use provided comment or fallback to default
+            comment: comment,
             app: {}
         }
     };
@@ -17,7 +17,7 @@ async function deploy(project_key, groups, filters, flow_uuid, app_name, app_ver
 
     // Add groups if provided
     if (groups && groups.length > 0) {
-        requestBody.device_filter.groups = groups.map(group => ({ name: group }));
+        requestBody.device_filter.groups = groups.map(group => ({name: group}));
     }
 
     // Add filters if provided
@@ -54,7 +54,8 @@ async function deploy(project_key, groups, filters, flow_uuid, app_name, app_ver
         method: 'POST',
         url: apiUrl,
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
         },
         data: requestBody // Use `data` for the request body in axios
     };
@@ -69,4 +70,4 @@ async function deploy(project_key, groups, filters, flow_uuid, app_name, app_ver
 }
 
 // Export the deploy function
-module.exports = { deploy };
+module.exports = {deploy};

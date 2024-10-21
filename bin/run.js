@@ -33711,13 +33711,12 @@ var require_deploy = __commonJS({
   "src/deploy.js"(exports2, module2) {
     var axios = require_axios();
     var core2 = require_core();
-    async function deploy2(project_key, groups, filters, flow_uuid, app_name, app_version, comment, parameters_mapping) {
+    async function deploy2(project_key, groups, filters, flow_uuid, app_name, app_version, comment, parameters_mapping, token) {
       const requestBody = {
         device_filter: {},
         deployment_configuration: {
           flow_uuid,
-          comment: comment || "Default comment",
-          // Use provided comment or fallback to default
+          comment,
           app: {}
         }
       };
@@ -33751,7 +33750,8 @@ var require_deploy = __commonJS({
         method: "POST",
         url: apiUrl,
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         data: requestBody
         // Use `data` for the request body in axios
@@ -33781,7 +33781,8 @@ var core = require_core();
     const app_version = core.getInput("app_version") || null;
     const comment = core.getInput("comment") || null;
     const parameters_mapping = JSON.parse(core.getInput("parameters_mapping") || "{}");
-    await deploy(project_key, groups, filters, flow_uuid, app_name, app_version, comment, parameters_mapping);
+    const token = core.getInput("token", { required: true });
+    await deploy(project_key, groups, filters, flow_uuid, app_name, app_version, comment, parameters_mapping, token);
   } catch (error) {
     core.setFailed(error.message);
   }

@@ -31,6 +31,9 @@ inputs:
     description: 'The mapping of parameters for the update configuration in JSON format (optional)'
     required: false
     default: '{}'
+  token:
+    description: 'The authorization token (required)'
+    required: true
 runs:
   using: 'node20'
   main: 'bin/run.js'
