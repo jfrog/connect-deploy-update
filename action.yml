@@ -33,4 +33,4 @@ inputs:
     default: '{}'
 runs:
   using: 'node20'
-  main: 'run.js'
+  main: 'bin/run.js'
