@@ -1,0 +1,56 @@
+name: manual-deploy-update
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_key:
+        description: 'The project key (required)'
+        required: true
+      groups:
+        description: 'The device group names in JSON format (optional)'
+        required: false
+        default: '[]'
+      filters:
+        description: 'The filters in JSON format (optional)'
+        required: false
+        default: '[]'
+      flow_uuid:
+        description: 'The Flow UUID (required)'
+        required: true
+      app_name:
+        description: 'The Application Name (optional)'
+        required: false
+        default: ''
+      app_version:
+        description: 'The Application Version (optional)'
+        required: false
+        default: ''
+      comment:
+        description: 'The deployment comment (optional)'
+        required: false
+        default: 'Default comment'
+      parameters_mapping:
+        description: 'The mapping of parameters for the update configuration in JSON format (optional)'
+        required: false
+        default: '{}'
+      token:
+        description: 'The token for authentication (required)'
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run Deploy Action
+        uses: ./  # This uses the action defined in the current repository
+        with:
+          project_key: ${{ inputs.project_key }}
+          groups: ${{ inputs.groups }}
+          filters: ${{ inputs.filters }}
+          flow_uuid: ${{ inputs.flow_uuid }}
+          app_name: ${{ inputs.app_name }}
+          app_version: ${{ inputs.app_version }}
+          comment: ${{ inputs.comment }}
+          parameters_mapping: ${{ inputs.parameters_mapping }}
+          token: ${{ inputs.token }}
