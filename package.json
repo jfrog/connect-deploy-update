@@ -4,7 +4,8 @@
   "description": "This GitHub Action allows you to deploy an update flow configured in JFrog Connect’s web UI to specific devices or groups of devices within your fleet. You can specify device filters, update configurations, and provide deployment comments.",
   "main": "index.js",
   "scripts": {
-    "pack": "esbuild src/index.js --bundle --platform=node --outfile=bin/run.js"
+    "pack": "esbuild src/index.js --bundle --platform=node --outfile=bin/run.js",
+    "test": "jest"
   },
   "keywords": [],
   "author": "JFrog",
