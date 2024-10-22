@@ -42,6 +42,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
       - name: Run Deploy Action
         uses: ./  # This uses the action defined in the current repository
         with:
