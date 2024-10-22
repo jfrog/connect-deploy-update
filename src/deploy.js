@@ -4,7 +4,9 @@ const core = require('@actions/core');
 
 async function deploy(project_key, groups, filters, flow_uuid, app_name, app_version, comment, parameters_mapping, token) {
     const requestBody = {
-        device_filter: {},
+        device_filter: {
+            groups: [],
+        },
         deployment_configuration: {
             flow_uuid: flow_uuid,
             comment: comment,

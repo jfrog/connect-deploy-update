@@ -33713,7 +33713,9 @@ var require_deploy = __commonJS({
     var core2 = require_core();
     async function deploy2(project_key, groups, filters, flow_uuid, app_name, app_version, comment, parameters_mapping, token) {
       const requestBody = {
-        device_filter: {},
+        device_filter: {
+          groups: []
+        },
         deployment_configuration: {
           flow_uuid,
           comment,
