@@ -1,5 +1,7 @@
 # Deploy Device Update Action
 
+[![ci](https://github.com/upswift/connect-deploy-update/actions/workflows/ci.yml/badge.svg)](https://github.com/upswift/connect-deploy-update/actions/workflows/ci.yml)
+
 This GitHub Action allows you to deploy an update flow configured in JFrog Connect’s web UI to specific devices or
 groups of devices within your fleet. You can specify device filters, update configurations, and provide deployment
 comments.
@@ -154,25 +156,25 @@ The deployment_configuration object specifies the parameters for the deployment:
 
 # Contributing
 
-## prerequisites
+### prerequisites
 
 - Node.js v20
 
-## Setup
+### Setup
 
 - Clone the repository
 - Run `npm install`
 
-## Testing
+### Testing
 
 - Run `npm test`
 
-## Packaging
+### Packaging
 
 - Make code changes
 - Pack using `npm run pack`
 - Commit the changes (including the packed file `bin/run.js`)
 
-## Release
+### Release
 
 - Tag the commit with the version number
