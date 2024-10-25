@@ -33784,6 +33784,7 @@ var core = require_core();
     const comment = core.getInput("comment") || null;
     const parameters_mapping = JSON.parse(core.getInput("parameters_mapping") || "{}");
     const token = core.getInput("token", { required: true });
+    core.setSecret(token);
     await deploy(project_key, groups, filters, flow_uuid, app_name, app_version, comment, parameters_mapping, token);
   } catch (error) {
     core.setFailed(error.message);

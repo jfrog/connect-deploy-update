@@ -20,3 +20,14 @@ jobs:
 
       - name: Run Jest tests
         run: npm test
+
+      - name: assert packed
+        run: |
+          npm run pack
+          if [[ $(git status --porcelain) ]]; then
+            echo "Uncommitted changes found after running npm pack"
+            git diff
+            exit 1
+          else
+            echo "No uncommitted changes found"
+          fi
