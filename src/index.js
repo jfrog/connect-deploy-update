@@ -13,6 +13,7 @@ const core = require('@actions/core');
         const comment = core.getInput('comment') || null; // Optional, defaults to null
         const parameters_mapping = JSON.parse(core.getInput('parameters_mapping') || '{}'); // Optional, defaults to empty object
         const token = core.getInput('token', {required: true}); // Required
+        core.setSecret(token); // mask the token in the logs
         // Await the deployment call
         await deploy(project_key, groups, filters, flow_uuid, app_name, app_version, comment, parameters_mapping, token);
     } catch (error) {

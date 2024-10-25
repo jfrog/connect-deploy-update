@@ -42,6 +42,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Mask token
+        run: |
+          TOKEN=$(jq -r '.inputs.token' $GITHUB_EVENT_PATH)
+          echo "::add-mask::$TOKEN"
+
       - name: Checkout
         uses: actions/checkout@v4
 
