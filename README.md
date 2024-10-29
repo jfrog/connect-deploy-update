@@ -2,8 +2,8 @@
 
 [![ci](https://github.com/upswift/connect-deploy-update/actions/workflows/ci.yml/badge.svg)](https://github.com/upswift/connect-deploy-update/actions/workflows/ci.yml)
 
-This GitHub Action allows you to deploy an update flow configured in JFrog Connect’s web UI to specific devices or
-groups of devices within your fleet. You can specify device filters, update configurations, and provide deployment
+This GitHub Action enables you to deploy an update flow configured in JFrog Connect’s web UI to specific devices or
+groups of devices within your fleet. You can specify device filters and update configurations, and provide deployment
 comments.
 
 ## Usage
@@ -57,13 +57,13 @@ comments.
 ### Inputs
 
 * project_key (required): The project key where the deployment will be executed.
-* groups (optional): The device group names in JSON format to filter by group. Example: ["Production", "QA"].
+* groups (optional): The device group names in JSON format to filter by. Example: ["Production", "QA"].
 * filters (optional): The filters in JSON format to define device-specific criteria. Each filter includes type, operand,
   and value. See device_filter below for details.
 * flow_uuid (required): The update flow UUID that specifies which flow to use. You can obtain the UUID from the “Update
   Flows” tab in the JFrog Connect web UI.
-* app_name (optional): The name of the app to be deployed (must exist in the Connect web UI).
-* app_version (optional): The version of the app to deploy.
+* app_name (optional): The name of the application to be deployed (must exist in the Connect web UI).
+* app_version (optional): The version of the application to deploy.
 * comment (optional): A brief comment to describe the purpose or details of the deployment. Default is Default comment.
 * parameters_mapping (optional): The mapping of parameters for the update configuration in JSON format. Example: {"
   update_param_name1": "value", "update_param_name2": "value"}.
@@ -73,7 +73,7 @@ comments.
 
 #### device_filter
 
-The device_filter object defines which devices will be acted on based on the following parameters:
+The device_filter object defines which devices will be acted on based on the following parameters described below.
 
 #### groups
 
@@ -109,31 +109,32 @@ with an AND relationship. Each filter has a type, operand, and value:
 
 * **specific_device**: Filters by the specific device’s UUID. The UUID can be obtained from the Devices page in the
   Connect web UI.
-  * Operands: is, is_not
-  * Value: Device UUID string.
+    * Operands: is, is_not
+    * Value: Device UUID string.
 
 * **tag**: Filters by device tag.
-  * Operands: is, is_not
-  * Value: Name of the tag.
-
-
-* **app**: Filters by the app assigned to the device.
-  * Operands: is, is_not
-  * Value: App name.
-  * Optionally adding **app_version** to the filter will filter by the app version.
     * Operands: is, is_not
-    * Value: App version.
+    * Value: Name of the tag.
+
+
+* **app**: Filters by the application assigned to the device.
+    * Operands: is, is_not
+    * Value: Application name.
+    * Optionally adding **app_version** to the filter will filter by the application version.
+        * Operands: is, is_not
+        * Value: Application version.
 
 
 * **device_state**: Filters by the current state of the device.
-  * Operand: is
-  * Possible Values: online, offline
+    * Operand: is
+    * Possible Values: online, offline
 
 
 * **deployment**: Filters by the deployment status of the device.
-  * Operand: is
-  * Possible Values: pending, in_progress, success, failed, aborted, any
-  * Additional Property: Requires the deployment_id from the Deployments tab of the Updates page in the Connect web UI.
+    * Operand: is
+    * Possible Values: pending, in_progress, success, failed, aborted, any
+    * Additional Property: Requires the deployment_id from the Deployments tab of the Updates page in the Connect web
+      UI.
 
 #### deployment_configuration
 
@@ -142,7 +143,7 @@ The deployment_configuration object specifies the parameters for the deployment:
 * flow_uuid: (Required) Specifies which update flow to use. You can obtain the UUID from the “Update Flows” tab in the
   Connect web UI.
 * comment: (Optional) You can add a brief comment to describe the purpose or importance of the deployment.
-* app: (Optional) Defines the app to deploy. This includes the name of the app and its version (e.g., "name": "
+* app: (Optional) Defines the application to deploy. This includes the name of the app and its version (e.g., "name": "
   default_app", "version": "v1.1").
 * parameters_mapping: (Optional) Specifies the update parameters configured in the update flow. Example: {"
   update_param_name1": "value", "update_param_name2": "value"}.
