@@ -1,5 +1,9 @@
 name: 'Deploy Update'
 description: 'Github Action to deploy an update to IoT devices using JFrog Connect'
+author: 'JFrog'
+branding:
+  icon: 'download-cloud'
+  color: 'green'
 inputs:
   project_key:
     description: 'The project key (required)'
