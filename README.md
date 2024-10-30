@@ -67,7 +67,8 @@ comments.
 * comment (optional): A brief comment to describe the purpose or details of the deployment. Default is Default comment.
 * parameters_mapping (optional): The mapping of parameters for the update configuration in JSON format. Example: {"
   update_param_name1": "value", "update_param_name2": "value"}.
-* token (required): The authorization token for authentication.
+* token (required): The [authorization token](https://docs.connect.jfrog.io/rest-api-v2/create-access-token) for
+  authentication.
 
 ### API Request Structure
 
@@ -150,7 +151,7 @@ The deployment_configuration object specifies the parameters for the deployment:
 
 #### Notes
 
-* This action is designed to trigger device updates via the JFrog Connect API.
+* This action is designed to trigger device updates via the [JFrog Connect API](https://api.docs.connect.jfrog.io/).
 * Ensure that you have the correct flow_uuid, project_key, and any necessary filters or app configurations before
   running this action.
 * Filters can be left empty, but their structure must be defined.
