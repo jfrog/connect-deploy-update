@@ -1,6 +1,6 @@
 # Deploy Device Update Action
 
-[![ci](https://github.com/upswift/connect-deploy-update/actions/workflows/ci.yml/badge.svg)](https://github.com/upswift/connect-deploy-update/actions/workflows/ci.yml)
+[![ci](https://github.com/jfrog/connect-deploy-update/actions/workflows/ci.yml/badge.svg)](https://github.com/jfrog/connect-deploy-update/actions/workflows/ci.yml)
 
 This GitHub Action enables you to deploy an update flow configured in JFrog Connect’s web UI to specific devices or
 groups of devices within your fleet. You can specify device filters and update configurations, and provide deployment
