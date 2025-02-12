@@ -11,7 +11,7 @@
   "author": "JFrog",
   "license": "",
   "devDependencies": {
-    "esbuild": "0.24.0",
+    "esbuild": "0.25.0",
     "jest": "^29.7.0",
     "nock": "^13.5.5"
   },
