@@ -10774,6 +10774,7 @@ var require_axios = __commonJS({
     }
     var FormData__default = /* @__PURE__ */ _interopDefaultLegacy(FormData$1);
     var url__default = /* @__PURE__ */ _interopDefaultLegacy(url);
+    var proxyFromEnv__default = /* @__PURE__ */ _interopDefaultLegacy(proxyFromEnv);
     var http__default = /* @__PURE__ */ _interopDefaultLegacy(http);
     var https__default = /* @__PURE__ */ _interopDefaultLegacy(https);
     var util__default = /* @__PURE__ */ _interopDefaultLegacy(util);
@@ -11381,6 +11382,11 @@ var require_axios = __commonJS({
         return url2;
       }
       const _encode = options && options.encode || encode;
+      if (utils$1.isFunction(options)) {
+        options = {
+          serialize: options
+        };
+      }
       const serializeFn = options && options.serialize;
       let serializedParams;
       if (serializeFn) {
@@ -11971,7 +11977,7 @@ var require_axios = __commonJS({
       }
       return requestedURL;
     }
-    var VERSION = "1.7.7";
+    var VERSION = "1.7.9";
     function parseProtocol(url2) {
       const match = /^([-+\w]{1,25})(:?\/\/|:)/.exec(url2);
       return match && match[1] || "";
@@ -12129,7 +12135,7 @@ var require_axios = __commonJS({
     };
     var readBlob$1 = readBlob;
     var BOUNDARY_ALPHABET = utils$1.ALPHABET.ALPHA_DIGIT + "-_";
-    var textEncoder = new util.TextEncoder();
+    var textEncoder = typeof TextEncoder === "function" ? new TextEncoder() : new util__default["default"].TextEncoder();
     var CRLF = "\r\n";
     var CRLF_BYTES = textEncoder.encode(CRLF);
     var CRLF_BYTES_COUNT = 2;
@@ -12364,7 +12370,7 @@ var require_axios = __commonJS({
     function setProxy(options, configProxy, location) {
       let proxy = configProxy;
       if (!proxy && proxy !== false) {
-        const proxyUrl = proxyFromEnv.getProxyForUrl(location);
+        const proxyUrl = proxyFromEnv__default["default"].getProxyForUrl(location);
         if (proxyUrl) {
           proxy = new URL(proxyUrl);
         }
@@ -12538,7 +12544,7 @@ var require_axios = __commonJS({
             } catch (e) {
             }
           }
-        } else if (utils$1.isBlob(data)) {
+        } else if (utils$1.isBlob(data) || utils$1.isFile(data)) {
           data.size && headers.setContentType(data.type || "application/octet-stream");
           headers.setContentLength(data.size || 0);
           data = stream__default["default"].Readable.from(readBlob$1(data));
@@ -12741,7 +12747,7 @@ var require_axios = __commonJS({
                 return;
               }
               const err = new AxiosError(
-                "maxContentLength size of " + config.maxContentLength + " exceeded",
+                "stream has been aborted",
                 AxiosError.ERR_BAD_RESPONSE,
                 config,
                 lastRequest
@@ -12834,45 +12840,13 @@ var require_axios = __commonJS({
         }
       });
     };
-    var isURLSameOrigin = platform.hasStandardBrowserEnv ? (
-      // Standard browser envs have full support of the APIs needed to test
-      // whether the request URL is of the same origin as current location.
-      function standardBrowserEnv() {
-        const msie = platform.navigator && /(msie|trident)/i.test(platform.navigator.userAgent);
-        const urlParsingNode = document.createElement("a");
-        let originURL;
-        function resolveURL(url2) {
-          let href = url2;
-          if (msie) {
-            urlParsingNode.setAttribute("href", href);
-            href = urlParsingNode.href;
-          }
-          urlParsingNode.setAttribute("href", href);
-          return {
-            href: urlParsingNode.href,
-            protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, "") : "",
-            host: urlParsingNode.host,
-            search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, "") : "",
-            hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, "") : "",
-            hostname: urlParsingNode.hostname,
-            port: urlParsingNode.port,
-            pathname: urlParsingNode.pathname.charAt(0) === "/" ? urlParsingNode.pathname : "/" + urlParsingNode.pathname
-          };
-        }
-        originURL = resolveURL(window.location.href);
-        return function isURLSameOrigin2(requestURL) {
-          const parsed = utils$1.isString(requestURL) ? resolveURL(requestURL) : requestURL;
-          return parsed.protocol === originURL.protocol && parsed.host === originURL.host;
-        };
-      }()
-    ) : (
-      // Non standard browser envs (web workers, react-native) lack needed support.
-      /* @__PURE__ */ function nonStandardBrowserEnv() {
-        return function isURLSameOrigin2() {
-          return true;
-        };
-      }()
-    );
+    var isURLSameOrigin = platform.hasStandardBrowserEnv ? /* @__PURE__ */ ((origin2, isMSIE) => (url2) => {
+      url2 = new URL(url2, platform.origin);
+      return origin2.protocol === url2.protocol && origin2.host === url2.host && (isMSIE || origin2.port === url2.port);
+    })(
+      new URL(platform.origin),
+      platform.navigator && /(msie|trident)/i.test(platform.navigator.userAgent)
+    ) : () => true;
     var cookies = platform.hasStandardBrowserEnv ? (
       // Standard browser envs support document.cookie
       {
@@ -12908,7 +12882,7 @@ var require_axios = __commonJS({
     function mergeConfig(config1, config2) {
       config2 = config2 || {};
       const config = {};
-      function getMergedValue(target, source, caseless) {
+      function getMergedValue(target, source, prop, caseless) {
         if (utils$1.isPlainObject(target) && utils$1.isPlainObject(source)) {
           return utils$1.merge.call({ caseless }, target, source);
         } else if (utils$1.isPlainObject(source)) {
@@ -12918,11 +12892,11 @@ var require_axios = __commonJS({
         }
         return source;
       }
-      function mergeDeepProperties(a, b, caseless) {
+      function mergeDeepProperties(a, b, prop, caseless) {
         if (!utils$1.isUndefined(b)) {
-          return getMergedValue(a, b, caseless);
+          return getMergedValue(a, b, prop, caseless);
         } else if (!utils$1.isUndefined(a)) {
-          return getMergedValue(void 0, a, caseless);
+          return getMergedValue(void 0, a, prop, caseless);
         }
       }
       function valueFromConfig2(a, b) {
@@ -12973,7 +12947,7 @@ var require_axios = __commonJS({
         socketPath: defaultToConfig2,
         responseEncoding: defaultToConfig2,
         validateStatus: mergeDirectKeys,
-        headers: (a, b) => mergeDeepProperties(headersToObject(a), headersToObject(b), true)
+        headers: (a, b, prop) => mergeDeepProperties(headersToObject(a), headersToObject(b), prop, true)
       };
       utils$1.forEach(Object.keys(Object.assign({}, config1, config2)), function computeConfigValue(prop) {
         const merge2 = mergeMap[prop] || mergeDeepProperties;
@@ -13534,6 +13508,12 @@ var require_axios = __commonJS({
         return validator2 ? validator2(value, opt, opts) : true;
       };
     };
+    validators$1.spelling = function spelling(correctSpelling) {
+      return (value, opt) => {
+        console.warn(`${opt} is likely a misspelling of ${correctSpelling}`);
+        return true;
+      };
+    };
     function assertOptions(options, schema, allowUnknown) {
       if (typeof options !== "object") {
         throw new AxiosError("options must be an object", AxiosError.ERR_BAD_OPTION_VALUE);
@@ -13582,8 +13562,8 @@ var require_axios = __commonJS({
           return await this._request(configOrUrl, config);
         } catch (err) {
           if (err instanceof Error) {
-            let dummy;
-            Error.captureStackTrace ? Error.captureStackTrace(dummy = {}) : dummy = new Error();
+            let dummy = {};
+            Error.captureStackTrace ? Error.captureStackTrace(dummy) : dummy = new Error();
             const stack = dummy.stack ? dummy.stack.replace(/^.+\n/, "") : "";
             try {
               if (!err.stack) {
@@ -13625,6 +13605,10 @@ var require_axios = __commonJS({
             }, true);
           }
         }
+        validator.assertOptions(config, {
+          baseUrl: validators.spelling("baseURL"),
+          withXsrfToken: validators.spelling("withXSRFToken")
+        }, true);
         config.method = (config.method || this.defaults.method || "get").toLowerCase();
         let contextHeaders = headers && utils$1.merge(
           headers.common,
@@ -19172,6 +19156,13 @@ var require_body = __commonJS({
     var { isUint8Array, isArrayBuffer } = require("util/types");
     var { File: UndiciFile } = require_file();
     var { parseMIMEType, serializeAMimeType } = require_dataURL();
+    var random;
+    try {
+      const crypto = require("node:crypto");
+      random = (max) => crypto.randomInt(0, max);
+    } catch {
+      random = (max) => Math.floor(Math.random(max));
+    }
     var ReadableStream2 = globalThis.ReadableStream;
     var File = NativeFile ?? UndiciFile;
     var textEncoder = new TextEncoder();
@@ -19214,7 +19205,7 @@ var require_body = __commonJS({
       } else if (ArrayBuffer.isView(object)) {
         source = new Uint8Array(object.buffer.slice(object.byteOffset, object.byteOffset + object.byteLength));
       } else if (util.isFormDataLike(object)) {
-        const boundary = `----formdata-undici-0${`${Math.floor(Math.random() * 1e11)}`.padStart(11, "0")}`;
+        const boundary = `----formdata-undici-0${`${random(1e11)}`.padStart(11, "0")}`;
         const prefix = `--${boundary}\r
 Content-Disposition: form-data`;
         const escape = (str) => str.replace(/\n/g, "%0A").replace(/\r/g, "%0D").replace(/"/g, "%22");
