@@ -10760,6 +10760,7 @@ var require_axios = __commonJS({
   "node_modules/axios/dist/node/axios.cjs"(exports2, module2) {
     "use strict";
     var FormData$1 = require_form_data();
+    var crypto = require("crypto");
     var url = require("url");
     var proxyFromEnv = require_proxy_from_env();
     var http = require("http");
@@ -10773,6 +10774,7 @@ var require_axios = __commonJS({
       return e && typeof e === "object" && "default" in e ? e : { "default": e };
     }
     var FormData__default = /* @__PURE__ */ _interopDefaultLegacy(FormData$1);
+    var crypto__default = /* @__PURE__ */ _interopDefaultLegacy(crypto);
     var url__default = /* @__PURE__ */ _interopDefaultLegacy(url);
     var proxyFromEnv__default = /* @__PURE__ */ _interopDefaultLegacy(proxyFromEnv);
     var http__default = /* @__PURE__ */ _interopDefaultLegacy(http);
@@ -10788,6 +10790,7 @@ var require_axios = __commonJS({
     }
     var { toString } = Object.prototype;
     var { getPrototypeOf } = Object;
+    var { iterator, toStringTag } = Symbol;
     var kindOf = /* @__PURE__ */ ((cache) => (thing) => {
       const str = toString.call(thing);
       return cache[str] || (cache[str] = str.slice(8, -1).toLowerCase());
@@ -10822,7 +10825,7 @@ var require_axios = __commonJS({
         return false;
       }
       const prototype2 = getPrototypeOf(val);
-      return (prototype2 === null || prototype2 === Object.prototype || Object.getPrototypeOf(prototype2) === null) && !(Symbol.toStringTag in val) && !(Symbol.iterator in val);
+      return (prototype2 === null || prototype2 === Object.prototype || Object.getPrototypeOf(prototype2) === null) && !(toStringTag in val) && !(iterator in val);
     };
     var isDate = kindOfTest("Date");
     var isFile = kindOfTest("File");
@@ -10969,10 +10972,10 @@ var require_axios = __commonJS({
       };
     })(typeof Uint8Array !== "undefined" && getPrototypeOf(Uint8Array));
     var forEachEntry = (obj, fn) => {
-      const generator = obj && obj[Symbol.iterator];
-      const iterator = generator.call(obj);
+      const generator = obj && obj[iterator];
+      const _iterator = generator.call(obj);
       let result;
-      while ((result = iterator.next()) && !result.done) {
+      while ((result = _iterator.next()) && !result.done) {
         const pair = result.value;
         fn.call(obj, pair[0], pair[1]);
       }
@@ -11041,23 +11044,8 @@ var require_axios = __commonJS({
     var toFiniteNumber = (value, defaultValue) => {
       return value != null && Number.isFinite(value = +value) ? value : defaultValue;
     };
-    var ALPHA = "abcdefghijklmnopqrstuvwxyz";
-    var DIGIT = "0123456789";
-    var ALPHABET = {
-      DIGIT,
-      ALPHA,
-      ALPHA_DIGIT: ALPHA + ALPHA.toUpperCase() + DIGIT
-    };
-    var generateString = (size = 16, alphabet = ALPHABET.ALPHA_DIGIT) => {
-      let str = "";
-      const { length } = alphabet;
-      while (size--) {
-        str += alphabet[Math.random() * length | 0];
-      }
-      return str;
-    };
     function isSpecCompliantForm(thing) {
-      return !!(thing && isFunction(thing.append) && thing[Symbol.toStringTag] === "FormData" && thing[Symbol.iterator]);
+      return !!(thing && isFunction(thing.append) && thing[toStringTag] === "FormData" && thing[iterator]);
     }
     var toJSONObject = (obj) => {
       const stack = new Array(10);
@@ -11103,6 +11091,7 @@ var require_axios = __commonJS({
       isFunction(_global.postMessage)
     );
     var asap = typeof queueMicrotask !== "undefined" ? queueMicrotask.bind(_global) : typeof process !== "undefined" && process.nextTick || _setImmediate;
+    var isIterable = (thing) => thing != null && isFunction(thing[iterator]);
     var utils$1 = {
       isArray,
       isArrayBuffer,
@@ -11154,14 +11143,13 @@ var require_axios = __commonJS({
       findKey,
       global: _global,
       isContextDefined,
-      ALPHABET,
-      generateString,
       isSpecCompliantForm,
       toJSONObject,
       isAsyncFn,
       isThenable,
       setImmediate: _setImmediate,
-      asap
+      asap,
+      isIterable
     };
     function AxiosError(message, code, config, request, response) {
       Error.call(this);
@@ -11279,6 +11267,9 @@ var require_axios = __commonJS({
         if (value === null) return "";
         if (utils$1.isDate(value)) {
           return value.toISOString();
+        }
+        if (utils$1.isBoolean(value)) {
+          return value.toString();
         }
         if (!useBlob && utils$1.isBlob(value)) {
           throw new AxiosError("Blob is not supported. Use a Buffer instead.");
@@ -11471,6 +11462,23 @@ var require_axios = __commonJS({
       clarifyTimeoutError: false
     };
     var URLSearchParams2 = url__default["default"].URLSearchParams;
+    var ALPHA = "abcdefghijklmnopqrstuvwxyz";
+    var DIGIT = "0123456789";
+    var ALPHABET = {
+      DIGIT,
+      ALPHA,
+      ALPHA_DIGIT: ALPHA + ALPHA.toUpperCase() + DIGIT
+    };
+    var generateString = (size = 16, alphabet = ALPHABET.ALPHA_DIGIT) => {
+      let str = "";
+      const { length } = alphabet;
+      const randomValues = new Uint32Array(size);
+      crypto__default["default"].randomFillSync(randomValues);
+      for (let i = 0; i < size; i++) {
+        str += alphabet[randomValues[i] % length];
+      }
+      return str;
+    };
     var platform$1 = {
       isNode: true,
       classes: {
@@ -11478,6 +11486,8 @@ var require_axios = __commonJS({
         FormData: FormData__default["default"],
         Blob: typeof Blob !== "undefined" && Blob || null
       },
+      ALPHABET,
+      generateString,
       protocols: ["http", "https", "file", "data"]
     };
     var hasBrowserEnv = typeof window !== "undefined" && typeof document !== "undefined";
@@ -11783,10 +11793,15 @@ var require_axios = __commonJS({
           setHeaders(header, valueOrRewrite);
         } else if (utils$1.isString(header) && (header = header.trim()) && !isValidHeaderName(header)) {
           setHeaders(parseHeaders(header), valueOrRewrite);
-        } else if (utils$1.isHeaders(header)) {
-          for (const [key, value] of header.entries()) {
-            setHeader(value, key, rewrite);
+        } else if (utils$1.isObject(header) && utils$1.isIterable(header)) {
+          let obj = {}, dest, key;
+          for (const entry of header) {
+            if (!utils$1.isArray(entry)) {
+              throw TypeError("Object iterator must return a key-value pair");
+            }
+            obj[key = entry[0]] = (dest = obj[key]) ? utils$1.isArray(dest) ? [...dest, entry[1]] : [dest, entry[1]] : entry[1];
           }
+          setHeaders(obj, valueOrRewrite);
         } else {
           header != null && setHeader(valueOrRewrite, header, rewrite);
         }
@@ -11890,6 +11905,9 @@ var require_axios = __commonJS({
       toString() {
         return Object.entries(this.toJSON()).map(([header, value]) => header + ": " + value).join("\n");
       }
+      getSetCookie() {
+        return this.get("set-cookie") || [];
+      }
       get [Symbol.toStringTag]() {
         return "AxiosHeaders";
       }
@@ -11971,13 +11989,14 @@ var require_axios = __commonJS({
     function combineURLs(baseURL, relativeURL) {
       return relativeURL ? baseURL.replace(/\/?\/$/, "") + "/" + relativeURL.replace(/^\/+/, "") : baseURL;
     }
-    function buildFullPath(baseURL, requestedURL) {
-      if (baseURL && !isAbsoluteURL(requestedURL)) {
+    function buildFullPath(baseURL, requestedURL, allowAbsoluteUrls) {
+      let isRelativeUrl = !isAbsoluteURL(requestedURL);
+      if (baseURL && (isRelativeUrl || allowAbsoluteUrls == false)) {
         return combineURLs(baseURL, requestedURL);
       }
       return requestedURL;
     }
-    var VERSION = "1.7.9";
+    var VERSION = "1.10.0";
     function parseProtocol(url2) {
       const match = /^([-+\w]{1,25})(:?\/\/|:)/.exec(url2);
       return match && match[1] || "";
@@ -12134,7 +12153,7 @@ var require_axios = __commonJS({
       }
     };
     var readBlob$1 = readBlob;
-    var BOUNDARY_ALPHABET = utils$1.ALPHABET.ALPHA_DIGIT + "-_";
+    var BOUNDARY_ALPHABET = platform.ALPHABET.ALPHA_DIGIT + "-_";
     var textEncoder = typeof TextEncoder === "function" ? new TextEncoder() : new util__default["default"].TextEncoder();
     var CRLF = "\r\n";
     var CRLF_BYTES = textEncoder.encode(CRLF);
@@ -12177,7 +12196,7 @@ var require_axios = __commonJS({
       const {
         tag = "form-data-boundary",
         size = 25,
-        boundary = tag + "-" + utils$1.generateString(size, BOUNDARY_ALPHABET)
+        boundary = tag + "-" + platform.generateString(size, BOUNDARY_ALPHABET)
       } = options || {};
       if (!utils$1.isFormData(form)) {
         throw TypeError("FormData instance required");
@@ -12186,7 +12205,7 @@ var require_axios = __commonJS({
         throw Error("boundary must be 10-70 characters long");
       }
       const boundaryBytes = textEncoder.encode("--" + boundary + CRLF);
-      const footerBytes = textEncoder.encode("--" + boundary + "--" + CRLF + CRLF);
+      const footerBytes = textEncoder.encode("--" + boundary + "--" + CRLF);
       let contentLength = footerBytes.byteLength;
       const parts = Array.from(form.entries()).map(([name, value]) => {
         const part = new FormDataPart(name, value);
@@ -12478,7 +12497,7 @@ var require_axios = __commonJS({
             config.signal.aborted ? abort() : config.signal.addEventListener("abort", abort);
           }
         }
-        const fullPath = buildFullPath(config.baseURL, config.url);
+        const fullPath = buildFullPath(config.baseURL, config.url, config.allowAbsoluteUrls);
         const parsed = new URL(fullPath, platform.hasBrowserEnv ? platform.origin : void 0);
         const protocol = parsed.protocol || supportedProtocols[0];
         if (protocol === "data:") {
@@ -12960,7 +12979,7 @@ var require_axios = __commonJS({
       const newConfig = mergeConfig({}, config);
       let { data, withXSRFToken, xsrfHeaderName, xsrfCookieName, headers, auth } = newConfig;
       newConfig.headers = headers = AxiosHeaders$1.from(headers);
-      newConfig.url = buildURL(buildFullPath(newConfig.baseURL, newConfig.url), config.params, config.paramsSerializer);
+      newConfig.url = buildURL(buildFullPath(newConfig.baseURL, newConfig.url, newConfig.allowAbsoluteUrls), config.params, config.paramsSerializer);
       if (auth) {
         headers.set(
           "Authorization",
@@ -13184,7 +13203,7 @@ var require_axios = __commonJS({
       }
     };
     var trackStream = (stream2, chunkSize, onProgress, onFinish) => {
-      const iterator = readBytes(stream2, chunkSize);
+      const iterator2 = readBytes(stream2, chunkSize);
       let bytes = 0;
       let done;
       let _onFinish = (e) => {
@@ -13196,7 +13215,7 @@ var require_axios = __commonJS({
       return new ReadableStream({
         async pull(controller) {
           try {
-            const { done: done2, value } = await iterator.next();
+            const { done: done2, value } = await iterator2.next();
             if (done2) {
               _onFinish();
               controller.close();
@@ -13215,7 +13234,7 @@ var require_axios = __commonJS({
         },
         cancel(reason) {
           _onFinish(reason);
-          return iterator.return();
+          return iterator2.return();
         }
       }, {
         highWaterMark: 2
@@ -13337,7 +13356,7 @@ var require_axios = __commonJS({
           duplex: "half",
           credentials: isCredentialsSupported ? withCredentials : void 0
         });
-        let response = await fetch(request);
+        let response = await fetch(request, fetchOptions);
         const isStreamResponse = supportsResponseStream && (responseType === "stream" || responseType === "response");
         if (supportsResponseStream && (onDownloadProgress || isStreamResponse && unsubscribe)) {
           const options = {};
@@ -13372,7 +13391,7 @@ var require_axios = __commonJS({
         });
       } catch (err) {
         unsubscribe && unsubscribe();
-        if (err && err.name === "TypeError" && /fetch/i.test(err.message)) {
+        if (err && err.name === "TypeError" && /Load failed|fetch/i.test(err.message)) {
           throw Object.assign(
             new AxiosError("Network Error", AxiosError.ERR_NETWORK, config, request),
             {
@@ -13543,7 +13562,7 @@ var require_axios = __commonJS({
     var validators = validator.validators;
     var Axios = class {
       constructor(instanceConfig) {
-        this.defaults = instanceConfig;
+        this.defaults = instanceConfig || {};
         this.interceptors = {
           request: new InterceptorManager$1(),
           response: new InterceptorManager$1()
@@ -13604,6 +13623,12 @@ var require_axios = __commonJS({
               serialize: validators.function
             }, true);
           }
+        }
+        if (config.allowAbsoluteUrls !== void 0) ;
+        else if (this.defaults.allowAbsoluteUrls !== void 0) {
+          config.allowAbsoluteUrls = this.defaults.allowAbsoluteUrls;
+        } else {
+          config.allowAbsoluteUrls = true;
         }
         validator.assertOptions(config, {
           baseUrl: validators.spelling("baseURL"),
@@ -13675,7 +13700,7 @@ var require_axios = __commonJS({
       }
       getUri(config) {
         config = mergeConfig(this.defaults, config);
-        const fullPath = buildFullPath(config.baseURL, config.url);
+        const fullPath = buildFullPath(config.baseURL, config.url, config.allowAbsoluteUrls);
         return buildURL(fullPath, config.params, config.paramsSerializer);
       }
     };
@@ -22761,6 +22786,14 @@ var require_pool = __commonJS({
         this[kOptions] = { ...util.deepClone(options), connect, allowH2 };
         this[kOptions].interceptors = options.interceptors ? { ...options.interceptors } : void 0;
         this[kFactory] = factory;
+        this.on("connectionError", (origin2, targets, error) => {
+          for (const target of targets) {
+            const idx = this[kClients].indexOf(target);
+            if (idx !== -1) {
+              this[kClients].splice(idx, 1);
+            }
+          }
+        });
       }
       [kGetDispatcher]() {
         let dispatcher = this[kClients].find((dispatcher2) => !dispatcher2[kNeedDrain]);
@@ -25431,6 +25464,7 @@ var require_headers = __commonJS({
       isValidHeaderName,
       isValidHeaderValue
     } = require_util2();
+    var util = require("util");
     var { webidl } = require_webidl();
     var assert = require("assert");
     var kHeadersMap = Symbol("headers map");
@@ -25782,6 +25816,9 @@ var require_headers = __commonJS({
       [Symbol.toStringTag]: {
         value: "Headers",
         configurable: true
+      },
+      [util.inspect.custom]: {
+        enumerable: false
       }
     });
     webidl.converters.HeadersInit = function(V) {
@@ -29371,8 +29408,6 @@ var require_constants4 = __commonJS({
 var require_util6 = __commonJS({
   "node_modules/undici/lib/cookies/util.js"(exports2, module2) {
     "use strict";
-    var assert = require("assert");
-    var { kHeadersList } = require_symbols();
     function isCTLExcludingHtab(value) {
       if (value.length === 0) {
         return false;
@@ -29503,25 +29538,13 @@ var require_util6 = __commonJS({
       }
       return out.join("; ");
     }
-    var kHeadersListNode;
-    function getHeadersList(headers) {
-      if (headers[kHeadersList]) {
-        return headers[kHeadersList];
-      }
-      if (!kHeadersListNode) {
-        kHeadersListNode = Object.getOwnPropertySymbols(headers).find(
-          (symbol) => symbol.description === "headers list"
-        );
-        assert(kHeadersListNode, "Headers cannot be parsed");
-      }
-      const headersList = headers[kHeadersListNode];
-      assert(headersList);
-      return headersList;
-    }
     module2.exports = {
       isCTLExcludingHtab,
-      stringify,
-      getHeadersList
+      validateCookieName,
+      validateCookiePath,
+      validateCookieValue,
+      toIMFDate,
+      stringify
     };
   }
 });
@@ -29671,7 +29694,7 @@ var require_cookies = __commonJS({
   "node_modules/undici/lib/cookies/index.js"(exports2, module2) {
     "use strict";
     var { parseSetCookie } = require_parse();
-    var { stringify, getHeadersList } = require_util6();
+    var { stringify } = require_util6();
     var { webidl } = require_webidl();
     var { Headers } = require_headers();
     function getCookies(headers) {
@@ -29703,11 +29726,11 @@ var require_cookies = __commonJS({
     function getSetCookies(headers) {
       webidl.argumentLengthCheck(arguments, 1, { header: "getSetCookies" });
       webidl.brandCheck(headers, Headers, { strict: false });
-      const cookies = getHeadersList(headers).cookies;
+      const cookies = headers.getSetCookie();
       if (!cookies) {
         return [];
       }
-      return cookies.map((pair) => parseSetCookie(Array.isArray(pair) ? pair[1] : pair));
+      return cookies.map((pair) => parseSetCookie(pair));
     }
     function setCookie(headers, cookie) {
       webidl.argumentLengthCheck(arguments, 2, { header: "setCookie" });
@@ -33798,6 +33821,9 @@ mime-types/index.js:
    * Copyright(c) 2015 Douglas Christopher Wilson
    * MIT Licensed
    *)
+
+axios/dist/node/axios.cjs:
+  (*! Axios v1.10.0 Copyright (c) 2025 Matt Zabriskie and contributors *)
 
 undici/lib/fetch/body.js:
   (*! formdata-polyfill. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> *)
