@@ -1,7 +1,5 @@
 # Deploy Device Update Action
 
-[![ci](https://github.com/upswift/connect-deploy-update/actions/workflows/ci.yml/badge.svg)](https://github.com/upswift/connect-deploy-update/actions/workflows/ci.yml)
-
 This GitHub Action allows you to deploy a JFrog Connect Update Flow to IoT or edge devices. Specify which devices you would like to update, assign a specific deployment tag (app_name) and version (app_version) to the deployment, set the the parameters for the deployment, and add a comment. The update flow itself should be configured using the JFrog Connect web UI.
 
 ## Usage
