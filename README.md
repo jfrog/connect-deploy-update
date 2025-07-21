@@ -1,6 +1,6 @@
 # Deploy Device Update Action
 
-This GitHub Action allows you to deploy a JFrog Connect Update Flow to IoT or edge devices. Specify which devices you would like to update, assign a specific deployment tag (app_name) and version (app_version) to the deployment, set the the parameters for the deployment, and add a comment. The update flow itself should be configured using the JFrog Connect web UI.
+This GitHub Action allows you to deploy a JFrog Connect Update Flow to IoT or edge devices. Specify which devices you would like to update, assign a specific deployment tag (app_name) and version (app_version) to the deployment, set the parameters for the deployment, and add a comment. The update flow itself should be configured using the JFrog Connect web UI.
 
 ## Usage
 
